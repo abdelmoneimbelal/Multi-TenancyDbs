@@ -33,29 +33,28 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'tenant' => ['sometimes', 'required', 'string', 'max:255', 'unique:tenants,name'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'name'      => ['required', 'string', 'max:255'],
+            'tenant'    => ['sometimes', 'required', 'string', 'max:255', 'unique:tenants,name'],
+            'email'     => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password'  => ['required', 'confirmed', Rules\Password::defaults()],
         ]);        
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name'      => $request->name,
+            'email'     => $request->email,
+            'password'  => Hash::make($request->password),
         ]);
 
         if ($request->tenant) {
             // create tenant record
             $tenant = Tenant::create([
-                'name' => $data['tenant'],
-                'subdomain' => str_replace(' ', '', $data['tenant']) . '.multi-tenancydbs.test',
-                'database' => str_replace(' ', '', $data['tenant']),
-                'user_id' => $user->id
+                'name'      => $data['tenant'],
+                'subdomain' => str_replace(' ', '', $data['tenant']) . '.' . env('APP_URL'),
+                'database'  => str_replace(' ', '', $data['tenant']),
+                'user_id'   => $user->id
             ]);
     
             // create new database
-            // DB::statement("CREATE DATABASE " . $tenant->database);
             (new TenantDatabaseServices())->createDB($tenant);
         }
 

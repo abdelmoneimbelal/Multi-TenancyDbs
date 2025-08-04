@@ -21,7 +21,8 @@ class TenantMiddleware
         if ($subdomain && $subdomain !== env('APP_URL')) {
             $tenant = Tenant::where('subdomain', $subdomain)->first();
             if($tenant){
-                (new TenantDatabaseServices)->connectToDB($tenant);
+                (new TenantDatabaseServices)->connectDB($tenant);
+                (new TenantDatabaseServices)->migrateDB($tenant);
             }else {
                 abort(404);
             }
